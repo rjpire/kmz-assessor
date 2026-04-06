@@ -242,7 +242,14 @@ def lookup_parcel_county_gis(
     no parcel found.  Raises on network errors.
     """
     county, state = detect_county_cached(lat, lng)
+
+    # 1. Try exact county match first (e.g. weld_colorado)
     config = registry.get(county, state)
+
+    # 2. Fall back to state-level catch-all (key = "_colorado", "_wyoming", etc.)
+    if config is None:
+        state_key = f"_{state.lower().replace(' ', '_')}"
+        config = registry._counties.get(state_key)
 
     if config is None:
         return {

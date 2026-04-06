@@ -1,15 +1,14 @@
 # County Assessor GIS Registry
 # ==============================
-# Each entry maps a county to its free public ArcGIS REST parcel service.
+# Each entry maps a county (or whole state) to a free public ArcGIS REST parcel service.
 #
-# Key format: "{county}_{state}" (all lowercase, spaces replaced with underscores)
-# Example:    "weld_colorado", "adams_colorado", "larimer_colorado"
+# Key formats:
+#   "{county}_{state}"  — exact county match, e.g. "weld_colorado"
+#   "_{state}"          — state-level fallback: any county in that state that isn't
+#                         registered individually will use this endpoint automatically
+#                         e.g. "_colorado" covers all 64 CO counties
 #
-# To find a new county's ArcGIS URL:
-#   1. Google: "[County Name] county parcel viewer arcgis"
-#   2. Open the map, press F12 → Network tab → filter "FeatureServer"
-#   3. Copy the base FeatureServer URL, add /0/query at the end
-#   4. Add the entry below following the same pattern as weld_colorado
+# Lookup priority: exact county match → state fallback → "not registered" warning
 #
 # type options:
 #   arcgis_rest  — Standard Esri ArcGIS REST API (most common)
@@ -18,7 +17,51 @@
 counties:
 
   # ---------------------------------------------------------------------------
-  # COLORADO
+  # STATE FALLBACKS
+  # Keys starting with _ are catch-alls: any county in that state that isn't
+  # registered individually will automatically use this endpoint.
+  # ---------------------------------------------------------------------------
+
+  _colorado:
+    name: "Colorado (statewide fallback — all 64 counties)"
+    type: arcgis_rest
+    assessor_portal: ""
+    url: "https://gis.colorado.gov/public/rest/services/Address_and_Parcel/Colorado_Public_Parcels/FeatureServer/0/query"
+    fields:
+      parcel_id:        parcel_id
+      owner:            owner
+      mail_address:     ownerAdd
+      mail_city:        ownAddCty
+      mail_state:       ownAddStt
+      mail_zip:         ownAddZip
+      legal_description: legalDesc
+      situs_address:    situsAdd
+      actual_value:     apprValTot
+      assessed_value:   asedValTot
+      acreage:          landAcres
+
+  _wyoming:
+    name: "Wyoming (statewide fallback — all 23 counties)"
+    type: arcgis_rest
+    assessor_portal: ""
+    url: "https://services3.arcgis.com/r0iJ85SKZ4zAzz3P/arcgis/rest/services/Wyoming_Parcels_for_2025/FeatureServer/0/query"
+    fields:
+      parcel_id:        parcelnb
+      account_no:       accountno
+      owner:            ownername1
+      mail_address:     mailaddres
+      mail_city:        mailcity
+      mail_state:       mailstate
+      mail_zip:         mailzipcod
+      situs_address:    locationad
+      legal_description: legal
+      actual_value:     actualvalu
+      assessed_value:   assessedva
+      acreage:          LANDGROSSA
+      tax_year:         taxyear
+
+  # ---------------------------------------------------------------------------
+  # COLORADO — county-specific overrides (richer data than the state service)
   # ---------------------------------------------------------------------------
 
   weld_colorado:
