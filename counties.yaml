@@ -120,6 +120,23 @@ counties:
       assessed_value:   asedValTot
       acreage:          landAcres
 
+  kit_carson_colorado:
+    name: "Kit Carson County, CO"
+    type: arcgis_rest
+    assessor_portal: "https://kitcarsoncountyco-assessor.tylerhost.net/assessor/web/"
+    url: "https://gis.colorado.gov/public/rest/services/Address_and_Parcel/Colorado_Public_Parcels/FeatureServer/0/query"
+    fields:
+      parcel_id:        parcel_id
+      owner:            owner
+      mail_address:     ownerAdd
+      mail_city:        ownAddCty
+      mail_state:       ownAddStt
+      mail_zip:         ownAddZip
+      legal_description: legalDesc
+      actual_value:     apprValTot
+      assessed_value:   asedValTot
+      acreage:          landAcres
+
   # ---------------------------------------------------------------------------
   # Template — copy and fill in for new counties:
   # ---------------------------------------------------------------------------
