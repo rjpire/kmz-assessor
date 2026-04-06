@@ -1,0 +1,143 @@
+# County Assessor GIS Registry
+# ==============================
+# Each entry maps a county to its free public ArcGIS REST parcel service.
+#
+# Key format: "{county}_{state}" (all lowercase, spaces replaced with underscores)
+# Example:    "weld_colorado", "adams_colorado", "larimer_colorado"
+#
+# To find a new county's ArcGIS URL:
+#   1. Google: "[County Name] county parcel viewer arcgis"
+#   2. Open the map, press F12 → Network tab → filter "FeatureServer"
+#   3. Copy the base FeatureServer URL, add /0/query at the end
+#   4. Add the entry below following the same pattern as weld_colorado
+#
+# type options:
+#   arcgis_rest  — Standard Esri ArcGIS REST API (most common)
+#   (future)     — Beacon/Schneidercorp, Tyler Technologies, etc.
+
+counties:
+
+  # ---------------------------------------------------------------------------
+  # COLORADO
+  # ---------------------------------------------------------------------------
+
+  weld_colorado:
+    name: "Weld County, CO"
+    type: arcgis_rest
+    assessor_portal: "https://apps.weld.gov/propertyportal/"
+    url: "https://services.arcgis.com/ewjSqmSyHJnkfBLL/arcgis/rest/services/Mobile_Parcel_View/FeatureServer/0/query"
+    fields:
+      parcel_id:        PARCEL
+      account_no:       accountno
+      owner:            ownername1
+      mail_address:     mailaddress1
+      mail_city:        mailcity
+      mail_state:       mailstate
+      mail_zip:         mailzipcode
+      legal_description: Legal
+      situs_address:    SITUS
+      actual_value:     Actualval
+      assessed_value:   Assessedval
+      acreage:          GIS_Acres
+      tax_year:         Taxyear
+      section_township_range: STR2
+
+  # ---------------------------------------------------------------------------
+  # COLORADO — via Colorado State Public Parcels FeatureServer
+  # Single endpoint covers all CO counties; spatial intersect returns the right
+  # county automatically. Source: gis.colorado.gov (free, no auth required).
+  # ---------------------------------------------------------------------------
+
+  adams_colorado:
+    name: "Adams County, CO"
+    type: arcgis_rest
+    assessor_portal: "https://adamscountyco.gov/our-country/elected-officials/assessor/"
+    url: "https://gis.colorado.gov/public/rest/services/Address_and_Parcel/Colorado_Public_Parcels/FeatureServer/0/query"
+    fields:
+      parcel_id:        parcel_id
+      owner:            owner
+      mail_address:     ownerAdd
+      mail_city:        ownAddCty
+      mail_state:       ownAddStt
+      mail_zip:         ownAddZip
+      legal_description: legalDesc
+      situs_address:    situsAdd
+      actual_value:     apprValTot
+      assessed_value:   asedValTot
+      acreage:          landAcres
+
+  larimer_colorado:
+    name: "Larimer County, CO"
+    type: arcgis_rest
+    assessor_portal: "https://www.larimer.gov/assessor/search"
+    url: "https://gis.colorado.gov/public/rest/services/Address_and_Parcel/Colorado_Public_Parcels/FeatureServer/0/query"
+    fields:
+      parcel_id:        parcel_id
+      owner:            owner
+      mail_address:     ownerAdd
+      mail_city:        ownAddCty
+      mail_state:       ownAddStt
+      mail_zip:         ownAddZip
+      legal_description: legalDesc
+      situs_address:    situsAdd
+      actual_value:     apprValTot
+      assessed_value:   asedValTot
+      acreage:          landAcres
+
+  morgan_colorado:
+    name: "Morgan County, CO"
+    type: arcgis_rest
+    assessor_portal: "https://morgancountyco-assessor.tylerhost.net/assessor/web/"
+    url: "https://gis.colorado.gov/public/rest/services/Address_and_Parcel/Colorado_Public_Parcels/FeatureServer/0/query"
+    fields:
+      parcel_id:        parcel_id
+      owner:            owner
+      mail_address:     ownerAdd
+      mail_city:        ownAddCty
+      mail_state:       ownAddStt
+      mail_zip:         ownAddZip
+      legal_description: legalDesc
+      situs_address:    situsAdd
+      actual_value:     apprValTot
+      assessed_value:   asedValTot
+      acreage:          landAcres
+
+  logan_colorado:
+    name: "Logan County, CO"
+    type: arcgis_rest
+    assessor_portal: "https://logancounty.colorado.gov/elected-officials/logan-county-assessor"
+    url: "https://gis.colorado.gov/public/rest/services/Address_and_Parcel/Colorado_Public_Parcels/FeatureServer/0/query"
+    fields:
+      parcel_id:        parcel_id
+      owner:            owner
+      mail_address:     ownerAdd
+      mail_city:        ownAddCty
+      mail_state:       ownAddStt
+      mail_zip:         ownAddZip
+      legal_description: legalDesc
+      situs_address:    situsAdd
+      actual_value:     apprValTot
+      assessed_value:   asedValTot
+      acreage:          landAcres
+
+  # ---------------------------------------------------------------------------
+  # Template — copy and fill in for new counties:
+  # ---------------------------------------------------------------------------
+  #
+  # yourcounty_yourstate:
+  #   name: "Your County, ST"
+  #   type: arcgis_rest
+  #   assessor_portal: "https://assessor.yourcounty.gov/"
+  #   url: "https://services.arcgis.com/.../FeatureServer/0/query"
+  #   fields:
+  #     parcel_id:        PARCELNO      # <- match field names from the service
+  #     owner:            OWNER_NAME
+  #     mail_address:     MAIL_ADDR
+  #     mail_city:        MAIL_CITY
+  #     mail_state:       MAIL_STATE
+  #     mail_zip:         MAIL_ZIP
+  #     legal_description: LEGAL_DESC
+  #     situs_address:    SITUS_ADDR
+  #     actual_value:     ACTUAL_VAL
+  #     assessed_value:   ASSESSED_VAL
+  #     acreage:          ACRES

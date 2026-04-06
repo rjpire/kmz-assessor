@@ -1,0 +1,14 @@
+# Streamlit secrets — NEVER commit this file
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Output files
+*.xlsx
+
+# Environment
+.env
