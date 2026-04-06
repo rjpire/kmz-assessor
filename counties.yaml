@@ -138,6 +138,33 @@ counties:
       acreage:          landAcres
 
   # ---------------------------------------------------------------------------
+  # WYOMING — via Wyoming Statewide Parcel FeatureServer
+  # Single endpoint covers all 23 WY counties. Add new counties by copying
+  # the entry below with a different key — the same URL works for all.
+  # Source: Wyoming Enterprise Technology Services (free, no auth required).
+  # ---------------------------------------------------------------------------
+
+  albany_wyoming:
+    name: "Albany County, WY"
+    type: arcgis_rest
+    assessor_portal: "https://itax.tylertech.com/AlbanyWY/"
+    url: "https://services3.arcgis.com/r0iJ85SKZ4zAzz3P/arcgis/rest/services/Wyoming_Parcels_for_2025/FeatureServer/0/query"
+    fields:
+      parcel_id:        parcelnb
+      account_no:       accountno
+      owner:            ownername1
+      mail_address:     mailaddres
+      mail_city:        mailcity
+      mail_state:       mailstate
+      mail_zip:         mailzipcod
+      situs_address:    locationad
+      legal_description: legal
+      actual_value:     actualvalu
+      assessed_value:   assessedva
+      acreage:          LANDGROSSA
+      tax_year:         taxyear
+
+  # ---------------------------------------------------------------------------
   # Template — copy and fill in for new counties:
   # ---------------------------------------------------------------------------
   #

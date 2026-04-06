@@ -13,6 +13,7 @@ import os
 import tempfile
 from collections import defaultdict
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pandas as pd
 import pydeck as pdk
@@ -99,28 +100,111 @@ with st.expander("🗂️ County Registry — view & add counties", expanded=Fal
 
         st.markdown("---")
         st.subheader("➕ Register a New County")
-        st.markdown(
-            "**How to find a county's ArcGIS URL:**\n"
-            "1. Google: `[County Name] county parcel viewer arcgis`\n"
-            "2. Open the map → press **F12** → **Network** tab → filter for `FeatureServer`\n"
-            "3. Copy the URL ending in `.../FeatureServer/0` (or `/0/query`)\n"
-            "4. Paste it below and click **Fetch Fields** to auto-discover field names"
+        st.caption(
+            "Paste any county GIS map URL below — the app will try to find the "
+            "ArcGIS endpoint automatically."
         )
 
         col1, col2 = st.columns(2)
         with col1:
-            new_county = st.text_input("County name", placeholder="Adams")
-            new_state  = st.text_input("State name",  placeholder="Colorado")
+            new_county = st.text_input("County name", placeholder="Albany")
+            new_state  = st.text_input("State name",  placeholder="Wyoming")
             new_portal = st.text_input("Assessor portal URL (optional)",
                                        placeholder="https://assessor.example.gov/")
         with col2:
-            new_url = st.text_input(
-                "ArcGIS FeatureServer URL",
-                placeholder="https://services.arcgis.com/.../FeatureServer/0/query",
-            )
-            new_name = st.text_input("Display name", placeholder="Adams County, CO")
+            new_name = st.text_input("Display name", placeholder="Albany County, WY")
 
-        # Field discovery
+            # Reset detection state when the URL input changes
+            map_url_input = st.text_input(
+                "County GIS map URL",
+                placeholder="https://county.maps.arcgis.com/... or any county map viewer URL",
+                help="Paste the URL from your browser when viewing the county parcel map. "
+                     "Works with ArcGIS Online apps, WebAppBuilder, county GIS portals, etc.",
+            )
+            if st.session_state.get("_last_detect_url") != map_url_input:
+                for _k in ("_detect_result", "_selected_candidate_url", "_detect_found_nothing"):
+                    st.session_state.pop(_k, None)
+                st.session_state["_last_detect_url"] = map_url_input
+
+            detect_col, manual_col = st.columns([3, 2])
+            with detect_col:
+                detect_clicked = st.button(
+                    "🔍 Auto-detect endpoint",
+                    disabled=not map_url_input.strip(),
+                    use_container_width=True,
+                )
+            with manual_col:
+                show_manual = st.checkbox("Enter URL manually", value=False)
+
+        # ── Auto-detect execution ─────────────────────────────────────────
+        if detect_clicked and map_url_input.strip():
+            with st.spinner("Searching for ArcGIS endpoints…"):
+                from arcgis_detector import detect_arcgis_from_url
+                result = detect_arcgis_from_url(map_url_input.strip())
+                st.session_state["_detect_result"] = result
+
+        # ── Show detection results ────────────────────────────────────────
+        new_url = st.session_state.get("_selected_candidate_url", "")
+
+        if "_detect_result" in st.session_state:
+            result = st.session_state["_detect_result"]
+
+            for w in result.warnings:
+                st.warning(w)
+
+            if result.is_spa or (not result.candidates and not result.non_arcgis):
+                with st.expander("📖 How to find the URL manually"):
+                    st.markdown(
+                        "1. Open the county map in **Chrome**\n"
+                        "2. Press **F12** → click the **Network** tab\n"
+                        "3. Type `FeatureServer` in the filter box\n"
+                        "4. Click on any parcel on the map\n"
+                        "5. Copy the URL that appears in the Network list\n"
+                        "6. Check **Enter URL manually** above and paste it"
+                    )
+                st.session_state["_detect_found_nothing"] = True
+
+            elif result.non_arcgis:
+                st.info(
+                    "This map does not appear to use ArcGIS REST — it may use "
+                    "TerraGIS, GeoServer, or another platform. Try searching Google for "
+                    f"`{new_county or 'county name'} county parcels ArcGIS` to find an "
+                    "alternative portal, or check **Enter URL manually** above."
+                )
+                st.session_state["_detect_found_nothing"] = True
+
+            elif result.candidates:
+                if len(result.candidates) == 1:
+                    new_url = result.candidates[0]
+                    st.success(f"Found endpoint: `{new_url}`")
+                    st.session_state["_selected_candidate_url"] = new_url
+                else:
+                    def _short_label(u):
+                        parts = [p for p in urlparse(u).path.split("/") if p]
+                        try:
+                            idx = next(i for i, p in enumerate(parts) if p.lower() == "services")
+                            return urlparse(u).netloc + " → " + " / ".join(parts[idx + 1:])
+                        except StopIteration:
+                            return u[-80:]
+
+                    new_url = st.selectbox(
+                        "Select the parcel endpoint",
+                        options=result.candidates,
+                        format_func=_short_label,
+                        key="_candidate_select",
+                    )
+                    st.session_state["_selected_candidate_url"] = new_url
+
+        # ── Manual URL override ───────────────────────────────────────────
+        if show_manual or st.session_state.get("_detect_found_nothing"):
+            new_url = st.text_input(
+                "ArcGIS FeatureServer URL (manual)",
+                value=new_url,
+                placeholder="https://services.arcgis.com/.../FeatureServer/0/query",
+                key="new_url_manual",
+            )
+
+        # ── Field discovery ───────────────────────────────────────────────
         if new_url and st.button("🔍 Fetch Fields from ArcGIS"):
             with st.spinner("Fetching field list…"):
                 try:
